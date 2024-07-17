@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Product Detail</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            background-color: #f8f8f8; /* Light grey background */
+            font-family: 'Inter', sans-serif;
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        .header {
+            padding: 20px;
+            background-color: #add8e6; /* Light blue background */
+            text-align: center;
+            color: white;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 32px;
+        }
+        .container {
+            padding: 20px;
+            max-width: 800px;
+            margin: 0 auto;
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        .product img {
+            width: 100%;
+            height: auto;
+            border-radius: 10px;
+        }
+        .product h2 {
+            font-size: 24px;
+            color: #333;
+            margin: 10px 0;
+        }
+        .product p {
+            font-size: 18px;
+            color: #666;
+            margin: 10px 0;
+        }
+        .product button {
+            background-color: #4CAF50; /* Green background */
+            border: none;
+            border-radius: 10px;
+            padding: 10px;
+            color: white;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+            width: 100%;
+            margin-top: 20px;
+        }
+        .product button:hover {
+            background-color: #45a049; /* Darker green on hover */
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Product Detail</h1>
+    </div>
+    <div class="container" id="productContainer">
+        <!-- Product details will be dynamically added here -->
+    </div>
+    <script src="https://js.stripe.com/v3/"></script>
+    <script>
+        const stripe = Stripe('YOUR_PUBLIC_STRIPE_API_KEY');
+
+        function loadProduct() {
+            const params = new URLSearchParams(window.location.search);
+            const productId = params.get('id');
+            const items = JSON.parse(localStorage.getItem('itemsForSale')) || [];
+            const item = items[productId];
+
+            const productContainer = document.getElementById('productContainer');
+            productContainer.innerHTML = `
+                <div class="product">
+                    <img src="${item.photo}" alt="Design">
+                    <h2>${item.designerName}</h2>
+                    <p>Price: $${item.price}</p>
+                    <button onclick="buyItem(${productId})">Buy</button>
+                </div>
+            `;
+        }
+
+        function buyItem(index) {
+            const items = JSON.parse(localStorage.getItem('itemsForSale')) || [];
+            const item = items[index];
+
+            stripe.redirectToCheckout({
+                lineItems: [{
+                    price_data: {
+                        currency: 'usd',
+                        product_data: {
+                            name: item.designerName + "'s Design",
+                            images: [item.photo],
+                        },
+                        unit_amount: item.price * 100, // Amount in cents
+                    },
+                    quantity: 1,
+                }],
+                mode: 'payment',
+                successUrl: window.location.origin + '/success.html',
+                cancelUrl: window.location.origin + '/cancel.html',
+            }).then((result) => {
+                if (result.error) {
+                    alert(result.error.message);
+                }
+            });
+        }
+
+        loadProduct();
+    </script>
+</body>
+</html>

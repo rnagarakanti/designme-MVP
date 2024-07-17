@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Designer Dashboard</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            background-color: #f8f8f8; /* Light grey background */
+            font-family: 'Inter', sans-serif;
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        .header {
+            padding: 20px;
+            background-color: #add8e6; /* Light blue background */
+            text-align: center;
+            color: white;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 32px;
+        }
+        .container {
+            padding: 20px;
+            display: flex;
+            justify-content: space-around;
+            flex-wrap: wrap;
+        }
+        .section {
+            background-color: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            margin: 20px;
+            flex: 1 1 300px;
+            text-align: center;
+        }
+        input[type="file"], input[type="text"], select {
+            margin-top: 10px;
+            width: 100%;
+            padding: 10px;
+            border-radius: 5px;
+            border: 1px solid #e0e0e0;
+            font-size: 16px;
+        }
+        canvas {
+            border: 1px solid #e0e0e0;
+            border-radius: 10px;
+            margin-top: 10px;
+            cursor: crosshair;
+        }
+        button {
+            background-color: #add8e6; /* Light blue background */
+            border: none;
+            border-radius: 20px;
+            padding: 10px 20px;
+            color: white;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 20px;
+            width: 100%;
+            transition: background-color 0.3s ease;
+        }
+        button:hover {
+            background-color: #93c3d3; /* Slightly darker blue on hover */
+        }
+        .remove-button {
+            background-color: #ff4d4d; /* Red background */
+            margin-top: 10px;
+        }
+        .remove-button:hover {
+            background-color: #d43f3f; /* Darker red on hover */
+        }
+        .controls {
+            display: flex;
+            justify-content: space-around;
+            margin-top: 10px;
+        }
+        .controls > div {
+            flex: 1;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Designer Dashboard</h1>
+    </div>
+    <div class="container">
+        <div class="section">
+            <h2>Upload Design</h2>
+            <input type="file" id="upload" accept="image/*">
+            <button id="removeUpload" class="remove-button">Remove Uploaded Photo</button>
+        </div>
+        <div class="section">
+            <h2>Preview Design</h2>
+            <div id="previewContainer">
+                <canvas id="designCanvas" width="300" height="300"></canvas>
+            </div>
+            <div class="controls">
+                <div>
+                    <label for="brushSize">Brush Size:</label>
+                    <input type="range" id="brushSize" min="1" max="20" value="5">
+                </div>
+                <div>
+                    <label for="brushColor">Brush Color:</label>
+                    <input type="color" id="brushColor" value="#000000">
+                </div>
+                <div>
+                    <label for="brushType">Brush Type:</label>
+                    <select id="brushType">
+                        <option value="round">Round</option>
+                        <option value="square">Square</option>
+                    </select>
+                </div>
+                <div>
+                    <button id="eraserButton">Eraser</button>
+                </div>
+                <div>
+                    <button id="clearButton">Clear Board</button>
+                </div>
+            </div>
+            <input type="text" id="priceInput" placeholder="Enter Price">
+            <button id="sellButton">Sell This Design</button>
+        </div>
+    </div>
+    <div class="container">
+        <div class="section">
+            <h2>Your Listed Designs</h2>
+            <div id="listedItemsContainer">
+                <!-- Listed items will be dynamically added here -->
+            </div>
+        </div>
+    </div>
+    <script>
+        const canvas = document.getElementById('designCanvas');
+        const ctx = canvas.getContext('2d');
+        let painting = false;
+        let brushSize = 5;
+        let brushColor = '#000000';
+        let brushType = 'round';
+        let erasing = false;
+
+        document.getElementById('upload').addEventListener('change', (event) => {
+            const file = event.target.files[0];
+            const reader = new FileReader();
+            reader.onload = function (e) {
+                const img = new Image();
+                img.src = e.target.result;
+                img.onload = function () {
+                    ctx.clearRect(0, 0, canvas.width, canvas.height);
+                    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                };
+            };
+            reader.readAsDataURL(file);
+        });
+
+        document.getElementById('removeUpload').addEventListener('click', () => {
+            document.getElementById('upload').value = '';
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+        });
+
+        document.getElementById('brushSize').addEventListener('input', (event) => {
+            brushSize = event.target.value;
+        });
+
+        document.getElementById('brushColor').addEventListener('input', (event) => {
+            brushColor = event.target.value;
+        });
+
+        document.getElementById('brushType').addEventListener('change', (event) => {
+            brushType = event.target.value;
+        });
+
+        document.getElementById('eraserButton').addEventListener('click', () => {
+            erasing = !erasing;
+            document.getElementById('eraserButton').style.backgroundColor = erasing ? '#ff4d4d' : '#add8e6';
+        });
+
+        document.getElementById('clearButton').addEventListener('click', () => {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+        });
+
+        canvas.addEventListener('mousedown', (event) => {
+            painting = true;
+            draw(event);
+        });
+
+        canvas.addEventListener('mouseup', () => {
+            painting = false;
+            ctx.beginPath();
+        });
+
+        canvas.addEventListener('mousemove', draw);
+
+        function draw(event) {
+            if (!painting) return;
+
+            ctx.lineWidth = brushSize;
+            ctx.lineCap = brushType;
+
+            if (erasing) {
+                ctx.strokeStyle = '#f8f8f8'; // Set to background color to "erase"
+            } else {
+                ctx.strokeStyle = brushColor;
+            }
+
+            ctx.lineTo(event.clientX - canvas.offsetLeft, event.clientY - canvas.offsetTop);
+            ctx.stroke();
+            ctx.beginPath();
+            ctx.moveTo(event.clientX - canvas.offsetLeft, event.clientY - canvas.offsetTop);
+        }
+
+        document.getElementById('sellButton').addEventListener('click', () => {
+            const designerName = prompt('Enter your name:');
+            const price = document.getElementById('priceInput').value;
+
+            if (!designerName || !price) {
+                alert('Please enter all required information.');
+                return;
+            }
+
+            const itemsForSale = JSON.parse(localStorage.getItem('itemsForSale')) || [];
+            itemsForSale.push({
+                designerName: designerName,
+                price: price,
+                photo: canvas.toDataURL()
+            });
+            localStorage.setItem('itemsForSale', JSON.stringify(itemsForSale));
+
+            alert('Your design has been listed for sale.');
+            loadListedItems();
+        });
+
+        function loadListedItems() {
+            const listedItemsContainer = document.getElementById('listedItemsContainer');
+            listedItemsContainer.innerHTML = '';
+            const itemsForSale = JSON.parse(localStorage.getItem('itemsForSale')) || [];
+
+            itemsForSale.forEach((item, index) => {
+                const itemDiv = document.createElement('div');
+                itemDiv.className = 'item';
+                itemDiv.innerHTML = `
+                    <img src="${item.photo}" alt="Design" class="preview-image">
+                    <h3>${item.designerName}</h3>
+                    <p>Price: $${item.price}</p>
+                    <button class="remove-button" onclick="deleteItem(${index})">Delete</button>
+                `;
+                listedItemsContainer.appendChild(itemDiv);
+            });
+        }
+
+        function deleteItem(index) {
+            const itemsForSale = JSON.parse(localStorage.getItem('itemsForSale')) || [];
+            itemsForSale.splice(index, 1);
+            localStorage.setItem('itemsForSale', JSON.stringify(itemsForSale));
+            loadListedItems();
+        }
+
+        loadListedItems();
+    </script>
+</body>
+</html>

@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Design Marketplace</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            background-color: #f8f8f8; /* Light grey background */
+            font-family: 'Inter', sans-serif;
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        .header {
+            padding: 20px;
+            background-color: #add8e6; /* Light blue background */
+            text-align: center;
+            color: white;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 32px;
+        }
+        .header a {
+            color: white;
+            text-decoration: none;
+            font-size: 20px;
+            margin-left: 20px;
+        }
+        .container {
+            padding: 20px;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        .item {
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            margin: 10px;
+            text-align: center;
+            width: 200px;
+            padding: 10px;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .item:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+        }
+        .item img {
+            width: 100%;
+            height: auto;
+            border-radius: 10px;
+        }
+        .item h3 {
+            font-size: 20px;
+            color: #333;
+            margin: 10px 0;
+        }
+        .item p {
+            font-size: 16px;
+            color: #666;
+            margin: 5px 0;
+        }
+        .item button {
+            background-color: #ff4d4d; /* Red background */
+            border: none;
+            border-radius: 10px;
+            padding: 10px;
+            color: white;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+            width: 100%;
+        }
+        .item button:hover {
+            background-color: #d43f3f; /* Darker red on hover */
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Design Marketplace</h1>
+        <a href="designer_dashboard.html">Designer Dashboard</a>
+    </div>
+    <div class="container" id="itemsContainer">
+        <!-- Items will be dynamically added here -->
+    </div>
+    <script>
+        function loadItems() {
+            const itemsContainer = document.getElementById('itemsContainer');
+            const items = JSON.parse(localStorage.getItem('itemsForSale')) || [];
+
+            items.forEach((item, index) => {
+                const itemDiv = document.createElement('div');
+                itemDiv.className = 'item';
+                itemDiv.innerHTML = `
+                    <img src="${item.photo}" alt="Design">
+                    <h3>${item.designerName}</h3>
+                    <p>Price: $${item.price}</p>
+                    <button onclick="viewItem(${index})">View</button>
+                `;
+                itemsContainer.appendChild(itemDiv);
+            });
+        }
+
+        function viewItem(index) {
+            window.location.href = `product.html?id=${index}`;
+        }
+
+        loadItems();
+    </script>
+</body>
+</html>

@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="assets/css/styles.css">
+</head>
+<body>
+    <div class="header">
+        <h1>Admin Dashboard</h1>
+    </div>
+    <div class="container">
+        <div class="section">
+            <h2>Manage Listed Designs</h2>
+            <div id="listedItemsContainer">
+                <!-- Listed items will be dynamically added here -->
+            </div>
+        </div>
+        <div class="section">
+            <h2>Manage Reviews</h2>
+            <div id="reviewsContainer">
+                <!-- Reviews will be dynamically added here -->
+            </div>
+        </div>
+    </div>
+    <script>
+        function loadListedItems() {
+            const listedItemsContainer = document.getElementById('listedItemsContainer');
+            listedItemsContainer.innerHTML = ''; // Clear previous items
+            const itemsForSale = JSON.parse(localStorage.getItem('itemsForSale')) || [];
+
+            itemsForSale.forEach((item, index) => {
+                const itemDiv = document.createElement('div');
+                itemDiv.className = 'item';
+                itemDiv.innerHTML = `
+                    <img src="${item.photo}" alt="Design" class="preview-image">
+                    <h3>${item.designerName}</h3>
+                    <p>Price: $${item.price}</p>
+                    <button class="remove-button" onclick="deleteItem(${index})">Delete</button>
+                `;
+                listedItemsContainer.appendChild(itemDiv);
+            });
+        }
+
+        function deleteItem(index) {
+            const itemsForSale = JSON.parse(localStorage.getItem('itemsForSale')) || [];
+            itemsForSale.splice(index, 1);
+            localStorage.setItem('itemsForSale', JSON.stringify(itemsForSale));
+            loadListedItems(); // Refresh listed items
+        }
+
+        function loadReviews() {
+            const reviewsContainer = document.getElementById('reviewsContainer');
+            const reviews = JSON.parse(localStorage.getItem('reviews')) || {};
+            reviewsContainer.innerHTML = ''; // Clear previous reviews
+
+            Object.keys(reviews).forEach(productId => {
+                const productReviews = reviews[productId];
+                productReviews.forEach((review, index) => {
+                    const reviewDiv = document.createElement('div');
+                    reviewDiv.className = 'review';
+                    reviewDiv.innerHTML = `
+                        <h4>${review.name}</h4>
+                        <p>${review.text}</p>
+                        <button class="remove-button" onclick="deleteReview('${productId}', ${index})">Delete</button>
+                    `;
+                    reviewsContainer.appendChild(reviewDiv);
+                });
+            });
+        }
+
+        function deleteReview(productId, reviewIndex) {
+            const reviews = JSON.parse(localStorage.getItem('reviews')) || {};
+            reviews[productId].splice(reviewIndex, 1);
+            if (reviews[productId].length === 0) {
+                delete reviews[productId];
+            }
+            localStorage.setItem('reviews', JSON.stringify(reviews));
+            loadReviews(); // Refresh reviews
+        }
+
+        loadListedItems();
+        loadReviews();
+    </script>
+</body>
+</html>
